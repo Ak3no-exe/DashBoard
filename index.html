@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mon dashboard</title>
+<style>
+:root{--bg:#eef1f5;--card:#fff;--ink:#1b2433;--mu:#6b7589;--bd:#dde2ea;--gain:#0e9aa7;--cost:#e0245e;--ac:#27406b}
+@media(prefers-color-scheme:dark){:root{--bg:#10151f;--card:#192130;--ink:#e8ecf4;--mu:#8e99ae;--bd:#2a3447;--gain:#35c4d1;--cost:#ff5c8a;--ac:#8fb0ee}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 system-ui,-apple-system,Segoe UI,sans-serif}
+header{padding:20px 20px 8px}
+h1{font-size:22px;margin:0}
+header p{margin:2px 0 0;color:var(--mu)}
+#home{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;padding:12px 20px 28px;max-width:900px;margin:0 auto}
+.tile{display:flex;flex-direction:column;align-items:flex-start;gap:4px;min-height:130px;padding:16px;border-radius:16px;background:var(--card);border:1px solid var(--bd);color:var(--ink);text-align:left}
+.tile i{font-size:30px;font-style:normal}.tile b{font-size:16px}.tile small{color:var(--mu)}
+.tile:hover{border-color:var(--ac)}
+main{max-width:900px;margin:0 auto;padding:12px 20px 28px}
+.page{display:none}.page.on{display:block}
+.back{margin-bottom:12px}
+section{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:16px}
+h2{font-size:16px;margin:0 0 10px}
+input,select,button,textarea{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--bd);border-radius:8px;padding:7px 9px}
+button{background:var(--ac);color:var(--card);border:0;cursor:pointer}
+button.g{background:none;border:1px solid var(--bd);color:var(--mu)}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--ac);outline-offset:1px}
+.row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}.row>*{flex:1;min-width:80px}
+.mu{color:var(--mu);font-size:13px}
+ul{list-style:none;margin:0;padding:0}
+li{padding:6px 0;border-bottom:1px solid var(--bd);display:flex;justify-content:space-between;gap:8px;align-items:center}
+a{color:var(--ink)}
+.n{font-variant-numeric:tabular-nums}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin:10px 0}
+.stats div{background:var(--bg);border-radius:8px;padding:10px}
+.stats b{display:block;font-size:20px;font-variant-numeric:tabular-nums}
+.gain{color:var(--gain)}.cost{color:var(--cost)}
+.bars{display:flex;align-items:flex-end;gap:8px;height:90px;margin:8px 0 22px}
+.bars div{flex:1;background:var(--cost);border-radius:4px 4px 0 0;position:relative;min-height:2px}
+.bars span{position:absolute;top:100%;left:0;right:0;text-align:center;font-size:11px;color:var(--mu)}
+.card{background:var(--bg);border-radius:8px;padding:18px;text-align:center;min-height:90px;margin-bottom:8px}
+.temp{font-size:38px;font-weight:700}
+[hidden]{display:none!important}
+</style></head>
+<body>
+<header><h1 id="hi" onclick="go('')" style="cursor:pointer">Mon dashboard</h1><p id="dt" class="mu"></p></header>
+<nav id="home">
+<button class="tile" onclick="go('tk')"><i>💰</i><b>TikTok</b><small id="t-tk">Pièces et lives</small></button>
+<button class="tile" onclick="go('me')"><i>⛅</i><b>Météo</b><small id="t-me">Prévisions</small></button>
+<button class="tile" onclick="go('ac')"><i>📰</i><b>Actus</b><small id="t-ac">À la une</small></button>
+<button class="tile" onclick="go('ag')"><i>📅</i><b>Agenda</b><small id="t-ag">Événements</small></button>
+<button class="tile" onclick="go('rv')"><i>🧠</i><b>Révisions</b><small id="t-rv">Cartes</small></button>
+</nav>
+<main id="pages">
+
+<section class="page" id="tk"><button class="g back" onclick="go('')">← Accueil</button>
+<h2>TikTok : pièces et gains de lives</h2>
+<div class="row">
+<input type="date" id="td"><select id="tt"><option value="achat">Achat de pièces</option><option value="gain">Gain de live</option></select>
+<input type="number" step="0.01" id="ta" placeholder="Montant"><select id="tc"><option>EUR</option><option>USD</option><option>GBP</option><option>CAD</option><option>CHF</option></select>
+<input type="number" id="tp" placeholder="Pièces (option)"><button onclick="addTk()">Ajouter</button>
+</div>
+<div class="row">
+<label class="mu">Importer un fichier CSV ou JSON&nbsp;<input type="file" id="tf" accept=".csv,.json,.txt" onchange="impTk(this)"></label>
+<label class="mu">Afficher en&nbsp;<select id="td2" onchange="setDisp(this.value)"><option>EUR</option><option>USD</option><option>GBP</option><option>CAD</option><option>CHF</option></select></label>
+</div>
+<p class="mu" id="tkn">Colonnes reconnues : date, type, montant, devise, pièces. Le type « gain », « live » ou « revenu » compte comme un gain, le reste comme un achat.</p>
+<div class="stats" id="tks"></div>
+<div class="bars" id="tkb"></div>
+<ul id="tkl"></ul>
+</section>
+
+<section class="page" id="me"><button class="g back" onclick="go('')">← Accueil</button><h2>Météo</h2>
+<div class="row"><input id="mc" placeholder="Ville" value="Paris"><button onclick="meteo()">Voir</button></div>
+<div class="card" id="mo">Chargement…</div><ul id="mf"></ul></section>
+
+<section class="page" id="ac"><button class="g back" onclick="go('')">← Accueil</button><h2>Actus</h2>
+<div class="row"><select id="af" onchange="actus()">
+<option value="https://www.lemonde.fr/rss/une.xml">Le Monde</option>
+<option value="https://www.francetvinfo.fr/titres.rss">France Info</option>
+<option value="https://www.numerama.com/feed/">Numerama</option></select></div>
+<ul id="al"><li>Chargement…</li></ul></section>
+
+<section class="page" id="ag"><button class="g back" onclick="go('')">← Accueil</button><h2>Agenda</h2>
+<div class="row"><input type="date" id="ed"><input type="time" id="et"><input id="en" placeholder="Événement" style="flex:2"><button onclick="addEv()">Ajouter</button></div>
+<ul id="el"></ul></section>
+
+<section class="page" id="rv"><button class="g back" onclick="go('')">← Accueil</button><h2>Révisions</h2>
+<p class="mu" id="rn"></p>
+<div class="card"><b id="rq"></b><p id="ra" class="mu"></p></div>
+<div class="row"><button id="rs" onclick="show()">Voir la réponse</button>
+<button id="rk" hidden onclick="ans(true)">Je savais</button><button id="rk2" class="g" hidden onclick="ans(false)">Raté</button></div>
+<textarea id="rt" rows="3" style="width:100%" placeholder="Une carte par ligne : question :: réponse"></textarea>
+<div class="row" style="margin-top:6px"><button class="g" onclick="addCards()">Ajouter les cartes</button></div>
+</section>
+</main>
+
+<script>
+const $=i=>document.getElementById(i);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const load=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))??d}catch(e){return d}};
+const save=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
+async function jget(u){try{const j=await(await fetch(u)).json();save('c:'+u,j);return j}catch(e){const c=load('c:'+u,null);if(c)return c;throw e}}
+const now=new Date();
+const h=now.getHours();
+$('hi').textContent=(h<6||h>=18?'Bonsoir':'Bonjour')+' MB';
+$('dt').textContent=now.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+$('td').value=$('ed').value=now.toISOString().slice(0,10);
+
+/* ---------- TikTok ---------- */
+let tk=load('tk',[]),disp=load('disp','EUR'),rates={};
+$('td2').value=disp;
+const fmt=n=>n.toLocaleString('fr-FR',{style:'currency',currency:disp});
+const conv=e=>e.amt*(rates[e.cur]??1);
+async function getRates(){
+  rates={[disp]:1};
+  const cs=[...new Set(tk.map(e=>e.cur))].filter(c=>c!==disp);
+  await Promise.all(cs.map(async c=>{
+    try{const j=await jget(`https://api.frankfurter.app/latest?from=${c}&to=${disp}`);rates[c]=j.rates[disp]}
+    catch(e){rates[c]=1;$('tkn').textContent=`Taux de change indisponibles pour ${c} : conversion 1 pour 1 utilisée.`}
+  }));
+}
+async function setDisp(v){disp=v;save('disp',v);await renderTk()}
+async function renderTk(){
+  await getRates();
+  const buy=tk.filter(e=>e.type==='achat'),gn=tk.filter(e=>e.type==='gain');
+  const sb=buy.reduce((s,e)=>s+conv(e),0),sg=gn.reduce((s,e)=>s+conv(e),0),coins=buy.reduce((s,e)=>s+e.coins,0);
+  const withC=buy.filter(e=>e.coins).reduce((s,e)=>s+conv(e),0);
+  const net=sg-sb;$('t-tk').textContent='Solde '+fmt(net);
+  $('tks').innerHTML=`<div>Dépensé<b class="cost">${fmt(sb)}</b></div><div>Gagné en lives<b class="gain">${fmt(sg)}</b></div>
+  <div>Solde<b class="${net>=0?'gain':'cost'}">${fmt(net)}</b></div><div>Pièces achetées<b>${coins.toLocaleString('fr-FR')}</b></div>
+  <div>Coût moyen / 100 pièces<b>${coins&&withC?fmt(withC/coins*100):'–'}</b></div>`;
+  const m={};buy.forEach(e=>{const k=e.d.slice(0,7);m[k]=(m[k]||0)+conv(e)});
+  const ks=Object.keys(m).sort().slice(-6),mx=Math.max(1,...ks.map(k=>m[k]));
+  $('tkb').innerHTML=ks.map(k=>`<div style="height:${m[k]/mx*100}%" title="${fmt(m[k])}"><span>${k.slice(5)}/${k.slice(2,4)}</span></div>`).join('')||'<span class="mu">Les dépenses par mois s’afficheront ici.</span>';
+  $('tkl').innerHTML=[...tk].sort((a,b)=>b.d.localeCompare(a.d)).slice(0,10).map(e=>
+    `<li><span>${esc(e.d)} · ${e.type==='gain'?'Gain de live':'Achat'}${e.coins?' · '+e.coins+' pièces':''}</span>
+    <span class="n ${e.type==='gain'?'gain':'cost'}">${e.amt.toFixed(2)} ${esc(e.cur)} <button class="g" onclick="delTk('${e.id}')" aria-label="Supprimer">×</button></span></li>`).join('')||'<li class="mu">Aucune opération pour l’instant.</li>';
+}
+const uid=()=>Math.random().toString(36).slice(2);
+function addTk(){
+  const amt=parseFloat($('ta').value);if(!amt)return;
+  tk.push({id:uid(),d:$('td').value,type:$('tt').value,amt,cur:$('tc').value,coins:parseInt($('tp').value)||0});
+  save('tk',tk);$('ta').value=$('tp').value='';renderTk();
+}
+function delTk(id){tk=tk.filter(e=>e.id!==id);save('tk',tk);renderTk()}
+function parseF(t){
+  t=t.trim();
+  if(t[0]==='['||t[0]==='{'){const j=JSON.parse(t);return Array.isArray(j)?j:[j]}
+  const L=t.split(/\r?\n/),sep=L[0].includes(';')?';':',',H=L[0].split(sep).map(s=>s.trim().toLowerCase());
+  return L.slice(1).map(l=>{const c=l.split(sep),o={};H.forEach((x,i)=>o[x]=(c[i]||'').trim());return o});
+}
+function norm(o){
+  const g=(...k)=>{for(const x of k)if(o[x]!==undefined&&o[x]!=='')return o[x]};
+  const amt=parseFloat(String(g('montant','amount','prix','price')||0).replace(',','.'));
+  if(!amt)return null;
+  return{id:uid(),d:String(g('date','time')||now.toISOString()).slice(0,10),
+    type:/gain|live|revenu|earn|payout/i.test(g('type','categorie')||'')?'gain':'achat',
+    amt,cur:String(g('devise','currency')||'EUR').toUpperCase(),coins:parseInt(g('pièces','pieces','coins'))||0};
+}
+function impTk(inp){
+  const f=inp.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=()=>{try{
+    const rows=parseF(r.result).map(norm).filter(Boolean);
+    tk=tk.concat(rows);save('tk',tk);$('tkn').textContent=`${rows.length} opération(s) importée(s).`;renderTk();
+  }catch(e){$('tkn').textContent='Fichier illisible. Vérifie qu’il s’agit d’un CSV avec en-têtes ou d’un JSON.'}};
+  r.readAsText(f);inp.value='';
+}
+
+/* ---------- Météo ---------- */
+const WC=c=>c==0?'☀️':c<4?'⛅':c<50?'🌫️':c<70?'🌧️':c<80?'❄️':c<90?'🌦️':'⛈️';
+async function meteo(){
+  const o=$('mo');o.textContent='Chargement…';
+  try{
+    const g=await jget(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent($('mc').value)}&count=1&language=fr`);
+    if(!g.results)throw 0;const p=g.results[0];save('city',$('mc').value);
+    const w=await jget(`https://api.open-meteo.com/v1/forecast?latitude=${p.latitude}&longitude=${p.longitude}&current=temperature_2m,weather_code,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=auto`);
+    const d=w.daily,rain=d.precipitation_probability_max[0];$('t-me').textContent=Math.round(w.current.temperature_2m)+'°C · '+p.name;
+    o.innerHTML=`<div class="temp">${WC(w.current.weather_code)} ${Math.round(w.current.temperature_2m)}°C</div><div class="mu">${esc(p.name)} · vent ${Math.round(w.current.wind_speed_10m)} km/h</div>${rain>=50?'<div><b>Prends un parapluie ☔</b> ('+rain+' % de pluie)</div>':''}`;
+    $('mf').innerHTML=[1,2,3].map(i=>`<li><span>${new Date(d.time[i]).toLocaleDateString('fr-FR',{weekday:'long'})}</span><span class="n">${WC(d.weather_code[i])} ${Math.round(d.temperature_2m_min[i])}° / ${Math.round(d.temperature_2m_max[i])}°</span></li>`).join('');
+  }catch(e){o.textContent='Ville introuvable ou pas de connexion.';$('mf').innerHTML=''}
+}
+
+/* ---------- Actus ---------- */
+async function actus(){
+  const l=$('al');l.innerHTML='<li>Chargement…</li>';
+  try{
+    const j=await jget('https://api.rss2json.com/v1/api.json?rss_url='+encodeURIComponent($('af').value));
+    $('t-ac').textContent=$('af').selectedOptions[0].text;l.innerHTML=j.items.slice(0,7).map(i=>`<li><a href="${esc(i.link)}" target="_blank" rel="noopener">${esc(i.title)}</a></li>`).join('');
+  }catch(e){l.innerHTML='<li class="mu">Actus indisponibles pour le moment.</li>'}
+}
+
+/* ---------- Agenda ---------- */
+let ev=load('ev',[]);
+function addEv(){
+  const n=$('en').value.trim();if(!n||!$('ed').value)return;
+  ev.push({id:uid(),d:$('ed').value,t:$('et').value,n});save('ev',ev);$('en').value='';renderEv();
+}
+function renderEv(){
+  const today=now.toISOString().slice(0,10);
+  $('el').innerHTML=ev.filter(e=>e.d>=today).sort((a,b)=>(a.d+a.t).localeCompare(b.d+b.t)).map(e=>
+    `<li><span>${e.d===today?'<b>Aujourd’hui</b>':new Date(e.d).toLocaleDateString('fr-FR',{day:'numeric',month:'short'})} ${esc(e.t)} · ${esc(e.n)}</span>
+    <button class="g" onclick="ev=ev.filter(x=>x.id!=='${e.id}');save('ev',ev);renderEv()" aria-label="Supprimer">×</button></li>`).join('')||'<li class="mu">Rien de prévu.</li>';
+  const up=ev.filter(e=>e.d>=today).length;$('t-ag').textContent=up?up+' à venir':'Rien de prévu';
+}
+
+/* ---------- Révisions (boîtes de Leitner) ---------- */
+let cards=load('cards',[]),cur=null;const IV=[0,1,3,7,14];
+function renderRev(){
+  const d=cards.filter(c=>c.due<=Date.now());cur=d[0]||null;
+  $('rn').textContent=`${cards.length} cartes · ${d.length} à revoir`;$('t-rv').textContent=d.length+' à revoir';
+  $('rq').textContent=cur?cur.q:(cards.length?'Tout est révisé pour l’instant.':'Ajoute tes premières cartes ci-dessous.');
+  $('ra').textContent='';$('rs').hidden=!cur;$('rk').hidden=$('rk2').hidden=true;
+}
+function show(){$('ra').textContent=cur.a;$('rs').hidden=true;$('rk').hidden=$('rk2').hidden=false}
+function ans(ok){
+  cur.box=ok?Math.min(cur.box+1,4):0;
+  cur.due=Date.now()+(cur.box?IV[cur.box]*864e5:6e5);
+  save('cards',cards);renderRev();
+}
+function addCards(){
+  $('rt').value.split('\n').forEach(l=>{const [q,a]=l.split('::').map(s=>s.trim());if(q&&a)cards.push({id:uid(),q,a,box:0,due:0})});
+  $('rt').value='';save('cards',cards);renderRev();
+}
+
+/* ---------- Démarrage ---------- */
+$('mc').value=load('city','Paris');
+renderTk();renderEv();renderRev();meteo();actus();
+function go(id){
+  if(!id||!document.querySelector('section.page[id="'+id+'"]'))id='';
+  document.querySelectorAll('.page').forEach(p=>p.classList.toggle('on',p.id===id));
+  $('home').hidden=!!id;scrollTo(0,0);
+  if(location.hash.slice(1)!==id)location.hash=id;
+}
+addEventListener('hashchange',()=>go(location.hash.slice(1)));
+go(location.hash.slice(1));
+</script>
+</body></html>
